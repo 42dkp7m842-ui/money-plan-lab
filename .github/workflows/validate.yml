@@ -1,0 +1,31 @@
+name: Validate Money Plan Lab
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify scripts and plan-import markup
+        run: |
+          node --check ai-import.js
+          node --check sw.js
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const blocks=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(x=>x.trim());
+          for(const [i,s] of blocks.entries()) new Function(s);
+          for(const marker of ['id="aiJson"','id="aiPreviewButton"','id="aiImportPreview"','id="aiMonthList"','id="aiGoalList"','src="./ai-import.js"']) {
+            if(!html.includes(marker)) throw Error('Missing '+marker);
+          }
+          const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
+          if(!manifest.name||!manifest.icons?.length)throw Error('Invalid manifest');
+          console.log('Syntax, HTML markers and PWA manifest checks passed');
+          NODE
