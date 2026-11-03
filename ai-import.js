@@ -20,8 +20,8 @@ const PROMPT=[
 ].join('\n');
 const TEMPLATE={
  format:FORMAT,
- goals:[{id:'savings-2027',title:'2027年末までに貯金100万円',type:'savings',targetAmount:1000000,deadline:'2027-12-31',memo:'数値は説明用の例です'}],
- monthlyPlans:[{month:'2027-01',income:250000,savingTarget:125000,livingBudget:50000,cardBudget:85000,debtPayment:30000,cashLiving:20000,memo:'例示値。確定した計画で変更してください'}],
+ goals:[{id:'example-goal',title:'旅行積立（例）',type:'savings',targetAmount:120000,deadline:'2028-12-31',memo:'入力形式を示す架空の例です'}],
+ monthlyPlans:[{month:'2028-06',savingTarget:10000,livingBudget:45000,memo:'架空の例。実際の目標で変更してください'}],
  settings:{}
 };
 let pending=null;
