@@ -11,6 +11,48 @@ iPhone向けの個人用・資金繰り管理Webアプリです。ZaimのCSV明�
 5. **設定 → バックアップを読み込む** から、チャットで受け取った個人用JSONファイルを**ブラウザ内だけで**取り込む。
 6. Safariの共有メニュー → **ホーム画面に追加**。ホーム画面版ではデータ保存領域が別になる場合があるため、必要なら同じJSONを再度読み込みます。
 
+## ChatGPTから将来の資金計画・目標を取り込む
+
+1. アプリの **AI計画** タブを開き、**ChatGPT用プロンプトをコピー** を押します。
+2. ChatGPTに貼り付け、追加したい計画（例：「来月は月5万円生活、年末までに貯金100万円」）を相談してJSONを出してもらいます。
+3. ChatGPTから返された **JSONテキストを貼り付け**、または **.jsonファイルを選択** します。
+4. **取り込み内容を確認** を押し、目標・対象月・設定の変更点を確認します。
+5. **確認して反映する** を押すと、目標と月別計画が追加・更新されます。
+6. ホームの「ChatGPTからの計画」、AI計画の一覧、資金繰り予測で反映を確認してください。
+
+### 入力形式
+
+```json
+{
+  "format": "money-plan-lab-ai-v1",
+  "goals": [
+    {
+      "id": "example-goal",
+      "title": "旅行積立（例）",
+      "type": "savings",
+      "targetAmount": 120000,
+      "deadline": "2028-12-31"
+    }
+  ],
+  "monthlyPlans": [
+    {
+      "month": "2028-06",
+      "savingTarget": 10000,
+      "livingBudget": 45000
+    }
+  ],
+  "settings": {}
+}
+```
+
+**目標（goals）**：`id`、`title`、`type`、`targetAmount`、`deadline`、`currentAmount`、`memo` に対応。目標の `type` は `savings` / `debt` / `spending` / `custom`。
+
+**月別計画（monthlyPlans）**：`month` は必須で、`income`（通常収入）、`savingTarget`（貯金目標）、`livingBudget`（生活費の総予算）、`cardBudget`（新規カード利用予算）、`debtPayment`（借入返済）、`cashLiving`（カード以外の予定支出）、`extraIncome`（臨時収入）、`extraExpense`（臨時支出）、`memo` に対応。
+
+**基本設定（settings）**：`salary`、`salaryDay`、`scholarship`、`scholarshipDay`、`debtPay`、`debtDay`、`cashLiving`、`livingBudget`、`saving`、`startMonth` だけ更新できます。
+
+同じ `id` の目標・同じ `month` の月別計画は更新されます。登録済みの確定カード請求、Zaimの取引、口座残高、借入残高は変更しません。AI計画の再取込は「全データ復元」とは違い、計画だけ差分反映します。貯金目標とカード予算は予算枠のため **口座残高から差し引きません**。また、生活費予算とカード外支出は区別してください（生活費の総予算を丸ごとカード引落に加えない）。月ごとの `cashLiving`、`debtPayment`、`income`、`extraIncome`、`extraExpense` は試算に反映します。
+
 ## ZaimのCSVから更新する
 
 1. Zaim Web版でCSVデータをダウンロードする。
