@@ -13,7 +13,7 @@ const PROMPT=[
 'goals: 各要素に id（英数字とハイフン）、title（名称）、type（savings/debt/spending/custom）、targetAmount（円、整数）、deadline（YYYY-MM-DD。未確認なら省略）、currentAmount（確実な額だけ。未確認なら省略）、memo（任意）を入れてください。',
 'monthlyPlans: 各要素は month（YYYY-MM）を必須にし、確定した値だけ income（通常収入）、savingTarget（貯金目標）、livingBudget（生活費予算）、cardBudget（新規カード利用の上限）、debtPayment（借入返済額）、cashLiving（カード以外の予定支出）、extraIncome（臨時収入）、extraExpense（臨時支出）、memo（説明）を入れてください。',
 'settings: 必要な変更が明確に確定している場合のみ、salary、salaryDay、scholarship、scholarshipDay、debtPay、debtDay、cashLiving、livingBudget、saving、startMonth を指定してください。既存の設定を維持したいなら {} のままにしてください。',
-'金額は数値の整数（例 125000）にし、全て円に統一してください。予想や未確定は断定・補完しないでください。',
+'金額は数値の整数（例 12345）にし、全て円に統一してください。予想や未確定は断定・補完しないでください。',
 '重要：口座残高、借入金残高、確定済みカード請求、Zaimの過去の取引明細は含めないでください。',
 'カード請求の実際の引落と新規カード利用予算は別です。月別の cardBudget は予算目標で、資金繰りから差し引く請求額ではありません。',
 '同じ目標id・同じ月を再度取り込むと更新されます。消したい計画はアプリ側で削除します。'
