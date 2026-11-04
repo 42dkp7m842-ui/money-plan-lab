@@ -119,9 +119,9 @@ function aggregateSetting(raw){
  const value=String(raw??'').trim();
  const q=value.toLowerCase().replace(/[\s_\-　]/g,'');
  if(!q)return{countable:true,unknown:false,kind:'default'};
- if(/常に.*(?:含めない|除外|集計しない)|^(?:never|none|exclude|excluded|alwaysnot|dontcount|notcounted|off|false)$/.test(q))return{countable:false,unknown:false,kind:'always-exclude'};
+ if(/常に.*(?:含めない|除外|集計しない)|^(?:never|none|exclude|excluded|alwaysexclude|alwaysnot|dontcount|notcounted|off|false)$/.test(q))return{countable:false,unknown:false,kind:'always-exclude'};
+ if(/月ごと|月別|月.*年.*含める|^(?:monthly|monthandyear|monthyear|monthlyyearly)$/.test(q))return{countable:true,unknown:false,kind:'monthly'};
  if(/年(?:ごと|のみ).*含める|年別のみ|^(?:yearly|yearonly|annual|annualonly)$/.test(q))return{countable:false,unknown:false,kind:'year-only'};
- if(/月.*(?:年).*含める|月ごと|月別|^(?:monthly|monthandyear|monthyear|monthlyyearly)$/.test(q))return{countable:true,unknown:false,kind:'monthly'};
  if(/常に.*含める|全て.*含める|^(?:always|default|normal|include|included|on|true)$/.test(q))return{countable:true,unknown:false,kind:'always'};
  // Without a confirmed coding for numeric/other status values, do not silently claim Zaim parity.
  return{countable:true,unknown:true,kind:'unknown'};
