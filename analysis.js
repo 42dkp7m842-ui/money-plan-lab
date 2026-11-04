@@ -176,6 +176,20 @@ function renderProjection(rows){
  $('#analysisScenarioAmount').value=Math.round(monthly);
  $$('[data-scenario-change]').forEach(b=>b.addEventListener('click',()=>{a.scenarioAmount=Number(b.dataset.scenarioChange);save();renderAnalysis()}));
 }
+function spendingMix(rows){
+ const m=rows.find(x=>x.month===monthSelection)||rows.at(-1);
+ const contract=(state.fixed||[]).reduce((v,x)=>v+safeNum(x.amount)/(x.cycle==='year'?12:1),0);
+ const high=m?(state.transactions||[]).filter(t=>t.date?.startsWith(m.month)&&actualExpense(t)&&safeNum(t.amount)>=15000).reduce((v,t)=>v+safeNum(t.amount),0):0;
+ const rest=m?m.expense-high:0;
+ const ratio=m&&m.expense>0?percent(high/m.expense*100):0;
+ const html='<div class="analysis-metrics">'+
+ metric('契約固定費（月換算）',yenA(contract),'固定費タブの登録分')+
+ metric('高額明細（合計）',yenA(high),'集計対象・1件15,000円以上')+
+ metric('高額以外の生活支出',yenA(rest),'高額明細以外の記録')+
+ metric('高額明細の構成比',ratio.toFixed(1)+'%','生活支出のうち')+'</div>'+
+ (m&&m.expense>0?'<div class="analysis-gauge" style="margin-top:14px"><span style="width:'+ratio.toFixed(1)+'%;background:#c88a42"></span></div><p class="analysis-note">高額明細（オレンジ）は生活支出の内数です。固定費台帳と足し算していません。</p>':'');
+ $('#analysisSpendingMix').innerHTML=html;
+}
 function bigExpenses(rows){
  const transactions=(state.transactions||[]).filter(actualExpense).filter(t=>safeNum(t.amount)>=15000).sort((a,b)=>b.date.localeCompare(a.date)||b.amount-a.amount).slice(0,12);
  const m=rows.at(-1);
@@ -225,6 +239,7 @@ function renderAnalysis(){
  $('#analysisTrend').innerHTML=monthChart(rows);
  renderCategories(rows);
  renderProjection(rows);
+ spendingMix(rows);
  renderAdvice(rows);
  bigExpenses(rows);
  renderQuality(rows);
