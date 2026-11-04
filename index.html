@@ -235,9 +235,9 @@ function commitCSV(mode){
  const batchId='csv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
  const importedAt=new Date().toISOString();
  const tagged=parsed.out.map(t=>({...t,importBatchId:batchId,importFile:name,importedAt}));
- lastDeletedTx=null;
  const warning=mode==='replace'?'既存のZaim取込明細'+state.transactions.length+'件をこのCSVの'+parsed.out.length+'件に入れ替えます。その他の家計計画は維持します。':'このCSVの明細を追加・更新します。';
  if(!confirm(warning+'\n\n続けますか？'))return;
+ lastDeletedTx=null;
  if(mode==='replace'){state.transactions=tagged;save();renderAll();$('#importResult').innerHTML='<div class="alert ok">✅ '+esc(name)+'：Zaim明細 '+parsed.out.length+'件を入れ替えました。'+(parsed.unrecognized.length?' 集計設定に未確認の値があります。':'')+'</div>'}
  else{const result=addTx(tagged);save();renderAll();$('#importResult').innerHTML='<div class="alert ok">✅ '+esc(name)+'：新規'+result.added+'件、既存更新'+result.updated+'件。'+(parsed.unrecognized.length?' 集計設定に未確認の値があります。':'')+'</div>'}
  csvPending=null;$('#csvPreview').innerHTML='';notice('Zaim明細を更新しました');
@@ -290,6 +290,7 @@ $('[data-del-tx]').forEach(b=>b.addEventListener('click',()=>{
 }));
 $('#deleteTxMonth').disabled=!month||!filtered.length;
 $('#undoTxDelete').disabled=!lastDeletedTx;
+}
 $('#txMonth').addEventListener('change',()=>renderTransactions());
 $('#deleteTxMonth').addEventListener('click',()=>{
  const month=$('#txMonth').value;if(!month)return;
