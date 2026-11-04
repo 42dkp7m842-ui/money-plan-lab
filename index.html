@@ -42,7 +42,7 @@
 <section id="settings" class="view"><div class="section"><h2>資金繰りの前提条件</h2><p class="note">金額はすべて円。請求済みのカード支払とカード外の支出を分けて管理します。</p><form id="settingsForm"><div class="input-grid"><label class="field">現在の手元資金・口座合計<input type="number" min="0" step="1" id="setCash"></label><label class="field">資金繰り開始月<input type="month" id="setStartMonth"></label><label class="field">給与手取り（月）<input type="number" min="0" step="1" id="setSalary"></label><label class="field">給与入金日<input type="number" min="1" max="31" id="setSalaryDay"></label><label class="field">奨学金返済（月）<input type="number" min="0" step="1" id="setScholarship"></label><label class="field">借入金残高<input type="number" min="0" step="1" id="setDebt"></label><label class="field">借入金返済（月）<input type="number" min="0" step="1" id="setDebtPay"></label><label class="field">借入金返済日（毎月）<input type="number" min="1" max="31" id="setDebtDay"></label><label class="field">奨学金の引落日（仮定）<input type="number" min="1" max="31" id="setScholarshipDay"></label><label class="field">カード以外の予定支出（月）<input type="number" min="0" step="1" id="setCashLiving"></label><label class="field">生活費の総予算（月）<input type="number" min="0" step="1" id="setLivingBudget"></label><label class="field">貯金目標（月）<input type="number" min="0" step="1" id="setSaving"></label><label class="field">現在の貯金残高<input type="number" min="0" step="1" id="setSavingsBalance"></label></div><div class="form-actions"><button type="submit" class="btn teal">設定を保存</button></div></form><div class="alert">月末残高試算は「手元資金 ＋ 給与 − カード引落 − 奨学金 − 借入返済 − カード以外の予定支出」です。借入金返済は残高を超えない金額に調整します（利息は未計上）。カード以外の支出は月末に仮置きしています。奨学金の引落日は未確認のため初期値27日（仮定）です。</div></div>
 <div class="section"><h2>口座残高メモ</h2><p class="note">Zaimで表示された各口座の残高を手動入力して管理できます。未入力の口座は試算に反映しません。</p><div id="accountList"></div><form id="accountForm"><div class="input-grid"><label class="field">口座名<input id="accountName" placeholder="例：メイン銀行"></label><label class="field">残高（円）<input id="accountBalance" type="number" step="1" placeholder="例：40000"></label></div><div class="form-actions"><button class="btn alt" type="submit">口座を追加</button><button class="btn ghost" type="button" id="applyAccounts">口座合計を手元資金へ反映</button></div></form></div>
 <div class="section"><h2>バックアップ・復元</h2><p class="note">iPhoneのSafariとホーム画面アプリでは保存領域が異なることがあります。こまめにバックアップしてください。</p><div class="file-actions"><button class="btn teal" id="exportBackup">JSONでバックアップ</button><label class="btn alt" style="cursor:pointer">バックアップを読み込む<input id="importBackup" type="file" accept=".json,application/json" hidden></label></div><p class="hint">バックアップは銀行・カード情報を含む場合があるため、第三者に共有しないでください。ブラウザのデータ削除で保存が消えることがあります。GitHub Pagesの同一ドメインでは別の自作アプリとブラウザ保存領域を共有する場合があります。個人情報の取扱いに注意してください。</p></div></section>
-</main><footer class="footer">Money Plan Lab · Private prototype v1.3 · ChatGPT計画取込に対応 · 銀行残高の自動取得は行いません</footer></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
+</main><footer class="footer">Money Plan Lab · Private prototype v1.4 · ChatGPT計画取込に対応 · 銀行残高の自動取得は行いません</footer></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
 const KEY='money_plan_lab_v1';
@@ -153,10 +153,11 @@ function csvImport(rows){
  const memo=col(h,['メモ','備考','comment']);
  if(date<0||(income<0&&expense<0&&amount<0))throw new Error('日付・支出・収入の列が見つかりません。Zaim公式CSVの内容を確認してください。');
  const get=(r,i)=>i>=0?String(r[i]??'').trim():'';
- const out=[];let invalid=0;const unrecognized=new Set(),currencies=new Set();
+ const out=[];let invalid=0,adjustments=0;const unrecognized=new Set(),currencies=new Set();
  const currencyCol=col(h,['通貨','currency','currencycode']);
  for(const r of rows.slice(1)){
   const d=asDate(get(r,date));if(!d){invalid++;continue}
+  if(get(r,method).toLowerCase().trim()==='balance'){adjustments++;continue}
   const currency=get(r,currencyCol);
   if(currency&&currency!=='JPY'&&currency!=='円'&&currency!=='日本円'&&currency!=='¥'&&currency!=='￥'){currencies.add(currency);invalid++;continue}
   const inc=toAmount(get(r,income)),exp=toAmount(get(r,expense)),trans=toAmount(get(r,transfer)),met=get(r,method).toLowerCase().trim(),generic=toAmount(get(r,amount));
@@ -174,7 +175,7 @@ function csvImport(rows){
   const t={date:d,type,amount:val,category:get(r,cat)||'未分類',detail:get(r,group),account:get(r,from)||get(r,dest),name:get(r,store)||get(r,item)||get(r,memo)||'明細',memo:get(r,memo),aggregate:rawAggregate,agKind:ag.kind,countable:type!=='transfer'&&ag.countable};t.moveKind=type==='expense'?cashMovement(t):'';
   out.push(t);
  }
- return{out,invalid,hasAggregateColumn:aggregate>=0,unrecognized:[...unrecognized],currencies:[...currencies]};
+ return{out,invalid,adjustments,hasAggregateColumn:aggregate>=0,unrecognized:[...unrecognized],currencies:[...currencies]};
 }
 function signature(t){return[t.date,t.type,t.amount,t.category,t.detail,t.account,t.name,t.memo].join('|')}
 function addTx(newTx){
@@ -208,7 +209,7 @@ function csvPreview(parsed,fileName){
  const trs=Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0])).map(([m,v])=>'<tr><td>'+esc(m)+'</td><td>'+yen(v.income)+'</td><td>'+yen(v.expense)+'</td><td>'+yen(v.movement)+'</td><td>'+yen(v.actualExpense)+'</td><td>'+yen(v.excluded)+'</td><td>'+yen(v.transfer)+'</td></tr>').join('');
  const warning=parsed.unrecognized.length?'<div class="alert bad">要確認：Zaimの集計設定で未認識の値があります（'+esc(parsed.unrecognized.slice(0,6).join('、'))+'）。このままではZaimの月次集計と一致しない可能性があります。実CSVの確認をおすすめします。</div>':'';
  const noColumn=parsed.hasAggregateColumn?'':'<div class="alert">CSVに「集計の設定」列が見当たりません。振替は除外できますが、集計対象外のカード引落・チャージ等は自動判断できません。</div>';
- el.innerHTML='<div class="section" style="margin-top:14px"><h3>取込前の確認：'+esc(fileName)+'</h3><p class="hint">CSV解析 '+parsed.out.length+'件・読取不能/対象外 '+parsed.invalid+'件・取込済み '+old+'件。集計除外・振替は収入/支出に含めません。</p><div style="overflow:auto"><table style="width:100%;font-size:11px;text-align:right;border-collapse:collapse"><thead><tr><th style="text-align:left">月</th><th>収入</th><th>支出（Zaim設定）</th><th>引出・チャージ</th><th>生活支出（目安）</th><th>集計対象外</th><th>振替</th></tr></thead><tbody>'+trs+'</tbody></table></div>'+warning+noColumn+
+ el.innerHTML='<div class="section" style="margin-top:14px"><h3>取込前の確認：'+esc(fileName)+'</h3><p class="hint">CSV解析 '+parsed.out.length+'件・残高調整（集計しない）'+parsed.adjustments+'件・読取不能/対象外 '+parsed.invalid+'件・取込済み '+old+'件。集計除外・振替は収入/支出に含めません。</p><div style="overflow:auto"><table style="width:100%;font-size:11px;text-align:right;border-collapse:collapse"><thead><tr><th style="text-align:left">月</th><th>収入</th><th>支出（Zaim設定）</th><th>引出・チャージ</th><th>生活支出（目安）</th><th>集計対象外</th><th>振替</th></tr></thead><tbody>'+trs+'</tbody></table></div>'+warning+noColumn+
  '<p class="hint">過去の不正確なCSV取込を修正するときは、まず「設定」からJSONバックアップを保存し、「入れ替える」を選んでください。カード請求・口座残高・固定費・AI計画は維持します。</p>'+
  '<div class="form-actions"><button type="button" class="btn teal" id="csvReplace">このCSVでZaim明細を入れ替える（推奨）</button><button type="button" class="btn alt" id="csvAppend">既存明細に追加・更新</button><button type="button" class="btn ghost" id="csvCancel">キャンセル</button></div></div>';
  $('#csvReplace').onclick=()=>commitCSV('replace');
