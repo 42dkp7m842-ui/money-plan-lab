@@ -26,7 +26,20 @@
 <section id="cards" class="view"><div class="section"><div class="section-h"><h2>登録済みのカード請求</h2><span class="badge">既存請求と分割残高</span></div><p class="note">請求額はスクリーンショットの数値から登録済み。最新の金額に変更できます。</p><div id="cardList"></div></div><div class="section"><h2>請求月の追加・修正</h2><form id="cardForm"><div class="input-grid"><label class="field">請求対象月<input type="month" id="cardMonth" required value="2027-05"></label><label class="field">請求額（円）<input type="number" id="cardAmount" min="0" step="1" required placeholder="例：35000"></label><label class="field full">実際の引落予定日<input type="date" id="cardDue" required value="2027-05-27"></label></div><div class="form-actions"><button class="btn teal" type="submit">請求額を保存</button></div><p class="hint">同じ月なら上書きします。支払額を変更した場合は分割手数料も含めた金額を入力してください。</p></form></div></section>
 <section id="recurring" class="view"><div class="section"><div class="section-h"><h2>サブスク・定期支払</h2><span class="badge" id="recurringBadge"></span></div><p class="note">すべてカード決済として登録しています。カード請求額に自動加算せず、二重計上を防ぎます。</p><div id="recurringList"></div></div><div class="section"><h2>固定費を追加・編集</h2><form id="fixedForm"><input type="hidden" id="fixedEditId"><div class="input-grid"><label class="field full">名称<input id="fixedName" required placeholder="例：動画配信サービス"></label><label class="field">金額（円）<input id="fixedAmount" type="number" min="0" step="1" required></label><label class="field">支払間隔<select id="fixedCycle"><option value="month">毎月</option><option value="year">毎年</option></select></label><label class="field">毎月の決済日（月額の場合）<input id="fixedDay" type="number" min="1" max="31" placeholder="例：20"></label><label class="field">次回の決済日（年額の場合）<input id="fixedNext" type="date"></label><label class="field full">メモ<input id="fixedMemo" placeholder="例：年払いか月払いか未確認"></label></div><div class="form-actions"><button class="btn teal" type="submit">固定費を保存</button><button type="button" class="btn alt" id="fixedReset">入力をリセット</button></div></form></div></section>
 <section id="zaim" class="view"><div class="section"><div class="section-h"><h2>Zaim CSV取り込み</h2><span class="badge ok">端末内で処理</span></div><div class="dropzone"><h3>📂 ZaimのCSVファイルを選択</h3><p>UTF-8 / Shift_JIS の日本語CSVに対応</p><input id="csvFile" type="file" accept=".csv,text/csv,text/plain"></div><div id="csvPreview" aria-live="polite"></div><div id="importResult" aria-live="polite"></div><div class="alert">CSVの取引は「家計簿分析」に使います。振替、Zaimで集計対象外の明細は月間収支から除外します。実際の集計設定が不明な行は「要確認」です。カード引落額や口座残高には自動反映しません。</div><p class="hint">Zaim Web版 → 設定 → ファイル入出力 → Zaimの記録データをダウンロード。列名が異なる場合は実ファイルに合わせた調整が必要です。</p><a class="btn alt" style="display:inline-block;text-decoration:none" href="https://content.zaim.net/money" target="_blank" rel="noopener">ZaimのCSV入出力ページ ↗</a></div>
-<div class="section"><div class="section-h"><h2>取り込んだ家計簿</h2><span id="txCount" class="badge"></span></div><label class="field">集計月<select id="txMonth"></select></label><div class="kpi-line" id="txSummary" style="margin-top:12px"></div><h3 style="margin-top:20px">支出カテゴリ</h3><div id="categoryBars"></div><h3 style="margin-top:18px">明細（直近30件）</h3><div id="txList"></div><div class="form-actions"><button class="btn danger" id="clearTx" type="button">取込明細のみ削除</button></div><p class="hint">Zaim設定上の支出はCSVの「集計の設定」に基づきます。生活支出（目安）はさらに現金引出・電子マネーチャージ・カード引落を除きます。振替を利用履歴に二重計上しないための区分です。CSVを再取込するときは、バックアップ後「入れ替える」を選択してください。</p></div></section>
+<div class="section"><div class="section-h"><h2>取り込んだ家計簿</h2><span id="txCount" class="badge"></span></div><label class="field">集計月<select id="txMonth"></select></label><div class="kpi-line" id="txSummary" style="margin-top:12px"></div><h3 style="margin-top:20px">支出カテゴリ</h3><div id="categoryBars"></div><h3 style="margin-top:18px">明細（直近30件）</h3>
+<p class="hint">各明細の「削除」を押すと、その1件だけMoney Plan Labから削除できます（Zaim本体には影響しません）。</p>
+<div id="txList"></div>
+<div class="section" style="background:#f7fafb;margin-top:17px">
+ <h3>取込ファイル別に削除</h3>
+ <p class="hint">v1.6以降に取り込んだCSVを、ファイル単位で削除できます。以前の明細は「ファイル不明」としてまとめています。</p>
+ <div id="txBatchList"></div>
+</div>
+<div class="form-actions" style="margin-top:15px">
+<button class="btn danger" id="deleteTxMonth" type="button">表示中の月をすべて削除</button>
+<button class="btn danger" id="clearTx" type="button">全Zaim明細を削除</button>
+<button class="btn alt" id="undoTxDelete" type="button" disabled>直前の削除を元に戻す</button>
+</div>
+<p class="hint">削除前に「設定 → バックアップを書き出す」をおすすめします。削除しても確定カード請求、サブスク、口座、AI計画は残ります。<p class="hint">Zaim設定上の支出はCSVの「集計の設定」に基づきます。生活支出（目安）はさらに現金引出・電子マネーチャージ・カード引落を除きます。振替を利用履歴に二重計上しないための区分です。CSVを再取込するときは、バックアップ後「入れ替える」を選択してください。</p></div></section>
 <section id="ai" class="view">
 <div class="section"><div class="section-h"><h2>ChatGPTで作った計画を反映</h2><span class="badge ok">JSON取込</span></div>
 <p class="note">ChatGPTで相談した目標・月別予算・返済計画を、JSONとして読み込めます。Zaim明細・口座残高・カード確定請求は上書きしません。</p>
@@ -42,7 +55,7 @@
 <section id="settings" class="view"><div class="section"><h2>資金繰りの前提条件</h2><p class="note">金額はすべて円。請求済みのカード支払とカード外の支出を分けて管理します。</p><form id="settingsForm"><div class="input-grid"><label class="field">現在の手元資金・口座合計<input type="number" min="0" step="1" id="setCash"></label><label class="field">資金繰り開始月<input type="month" id="setStartMonth"></label><label class="field">給与手取り（月）<input type="number" min="0" step="1" id="setSalary"></label><label class="field">給与入金日<input type="number" min="1" max="31" id="setSalaryDay"></label><label class="field">奨学金返済（月）<input type="number" min="0" step="1" id="setScholarship"></label><label class="field">借入金残高<input type="number" min="0" step="1" id="setDebt"></label><label class="field">借入金返済（月）<input type="number" min="0" step="1" id="setDebtPay"></label><label class="field">借入金返済日（毎月）<input type="number" min="1" max="31" id="setDebtDay"></label><label class="field">奨学金の引落日（仮定）<input type="number" min="1" max="31" id="setScholarshipDay"></label><label class="field">カード以外の予定支出（月）<input type="number" min="0" step="1" id="setCashLiving"></label><label class="field">生活費の総予算（月）<input type="number" min="0" step="1" id="setLivingBudget"></label><label class="field">貯金目標（月）<input type="number" min="0" step="1" id="setSaving"></label><label class="field">現在の貯金残高<input type="number" min="0" step="1" id="setSavingsBalance"></label></div><div class="form-actions"><button type="submit" class="btn teal">設定を保存</button></div></form><div class="alert">月末残高試算は「手元資金 ＋ 給与 − カード引落 − 奨学金 − 借入返済 − カード以外の予定支出」です。借入金返済は残高を超えない金額に調整します（利息は未計上）。カード以外の支出は月末に仮置きしています。奨学金の引落日は未確認のため初期値27日（仮定）です。</div></div>
 <div class="section"><h2>口座残高メモ</h2><p class="note">Zaimで表示された各口座の残高を手動入力して管理できます。未入力の口座は試算に反映しません。</p><div id="accountList"></div><form id="accountForm"><div class="input-grid"><label class="field">口座名<input id="accountName" placeholder="例：メイン銀行"></label><label class="field">残高（円）<input id="accountBalance" type="number" step="1" placeholder="例：40000"></label></div><div class="form-actions"><button class="btn alt" type="submit">口座を追加</button><button class="btn ghost" type="button" id="applyAccounts">口座合計を手元資金へ反映</button></div></form></div>
 <div class="section"><h2>バックアップ・復元</h2><p class="note">iPhoneのSafariとホーム画面アプリでは保存領域が異なることがあります。こまめにバックアップしてください。</p><div class="file-actions"><button class="btn teal" id="exportBackup">JSONでバックアップ</button><label class="btn alt" style="cursor:pointer">バックアップを読み込む<input id="importBackup" type="file" accept=".json,application/json" hidden></label></div><p class="hint">バックアップは銀行・カード情報を含む場合があるため、第三者に共有しないでください。ブラウザのデータ削除で保存が消えることがあります。GitHub Pagesの同一ドメインでは別の自作アプリとブラウザ保存領域を共有する場合があります。個人情報の取扱いに注意してください。</p></div></section>
-</main><footer class="footer">Money Plan Lab · Private prototype v1.5 · ChatGPT計画取込に対応 · 銀行残高の自動取得は行いません</footer></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
+</main><footer class="footer">Money Plan Lab · Private prototype v1.6 · ChatGPT計画取込に対応 · 銀行残高の自動取得は行いません</footer></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
 const KEY='money_plan_lab_v1';
@@ -219,10 +232,14 @@ function csvPreview(parsed,fileName){
 function commitCSV(mode){
  if(!csvPending)return;
  const {parsed,name}=csvPending;
+ const batchId='csv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
+ const importedAt=new Date().toISOString();
+ const tagged=parsed.out.map(t=>({...t,importBatchId:batchId,importFile:name,importedAt}));
+ lastDeletedTx=null;
  const warning=mode==='replace'?'既存のZaim取込明細'+state.transactions.length+'件をこのCSVの'+parsed.out.length+'件に入れ替えます。その他の家計計画は維持します。':'このCSVの明細を追加・更新します。';
  if(!confirm(warning+'\n\n続けますか？'))return;
- if(mode==='replace'){state.transactions=parsed.out;save();renderAll();$('#importResult').innerHTML='<div class="alert ok">✅ '+esc(name)+'：Zaim明細 '+parsed.out.length+'件を入れ替えました。'+(parsed.unrecognized.length?' 集計設定に未確認の値があります。':'')+'</div>'}
- else{const result=addTx(parsed.out);save();renderAll();$('#importResult').innerHTML='<div class="alert ok">✅ '+esc(name)+'：新規'+result.added+'件、既存更新'+result.updated+'件。'+(parsed.unrecognized.length?' 集計設定に未確認の値があります。':'')+'</div>'}
+ if(mode==='replace'){state.transactions=tagged;save();renderAll();$('#importResult').innerHTML='<div class="alert ok">✅ '+esc(name)+'：Zaim明細 '+parsed.out.length+'件を入れ替えました。'+(parsed.unrecognized.length?' 集計設定に未確認の値があります。':'')+'</div>'}
+ else{const result=addTx(tagged);save();renderAll();$('#importResult').innerHTML='<div class="alert ok">✅ '+esc(name)+'：新規'+result.added+'件、既存更新'+result.updated+'件。'+(parsed.unrecognized.length?' 集計設定に未確認の値があります。':'')+'</div>'}
  csvPending=null;$('#csvPreview').innerHTML='';notice('Zaim明細を更新しました');
 }
 $('#csvFile').addEventListener('change',async e=>{
@@ -237,8 +254,52 @@ $('#csvFile').addEventListener('change',async e=>{
  }catch(err){csvPending=null;$('#csvPreview').innerHTML='<div class="alert bad">CSV確認エラー：'+esc(err.message)+'</div>'}
  finally{e.target.value=''}
 });
-function renderTransactions(){const ts=state.transactions;const months=[...new Set(ts.map(t=>t.date.slice(0,7)))].sort().reverse();const select=$('#txMonth'),was=select.value;const opts=months.map(m=>`<option value="${esc(m)}">${esc(monthLabel(m))}</option>`).join('');select.innerHTML=opts||'<option value="">データなし</option>';if(months.includes(was))select.value=was;const month=select.value;const filtered=ts.filter(t=>t.date.startsWith(month));const expense=filtered.filter(t=>t.type==='expense'&&t.countable!==false).reduce((a,t)=>a+t.amount,0),income=filtered.filter(t=>t.type==='income'&&t.countable!==false).reduce((a,t)=>a+t.amount,0);const excluded=filtered.filter(t=>t.type!=='transfer'&&t.countable===false).reduce((a,t)=>a+t.amount,0),transferred=filtered.filter(t=>t.type==='transfer').reduce((a,t)=>a+t.amount,0),movement=filtered.filter(t=>t.type==='expense'&&t.countable!==false&&(t.moveKind||cashMovement(t))).reduce((a,t)=>a+t.amount,0),realExpense=expense-movement;$('#txCount').textContent=ts.length+'件取込済み（集計除外あり）';$('#txSummary').innerHTML=`<div><small>生活支出（引出・チャージを除く目安）</small><strong>${yen(realExpense)}</strong></div><div><small>Zaim設定上の支出</small><strong>${yen(expense)}</strong></div><div><small>現金引出・チャージ等</small><strong>${yen(movement)}</strong></div><div><small>今月の収入（Zaim記録）</small><strong>${yen(income)}</strong></div><div><small>集計から除外</small><strong>${yen(excluded)}</strong></div><div><small>口座間振替（別管理）</small><strong>${yen(transferred)}</strong></div>`;const cats={};for(const t of filtered.filter(t=>t.type==='expense'&&t.countable!==false&&!(t.moveKind||cashMovement(t))))cats[t.category]=(cats[t.category]||0)+t.amount;const values=Object.entries(cats).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...values.map(v=>v[1]));$('#categoryBars').innerHTML=values.length?values.slice(0,12).map(([name,val])=>`<div class="barrow"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(name)}">${esc(name)}</span><div class="track"><span style="width:${val/mx*100}%"></span></div><span class="amount">${yen(val)}</span></div>`).join(''):'<p class="empty">CSVを取り込むとカテゴリ別支出が表示されます。</p>';$('#txList').innerHTML=filtered.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30).map(t=>`<div class="txrow"><div><strong>${esc(t.name)}</strong><small>${esc(t.date)} · ${esc(t.category)} · ${esc(t.account)}</small></div><span class="amt ${(t.type==='income'&&t.amount>=0)||(t.type==='expense'&&t.amount<0)?'positive':''}">${t.type==='transfer'?'⇄':((t.type==='income'&&t.amount>=0)||(t.type==='expense'&&t.amount<0)?'+':'−')}${yen(Math.abs(t.amount))}</span></div>`).join('')||'<p class="empty">明細はありません</p>'}
-$('#txMonth').addEventListener('change',()=>renderTransactions());$('#clearTx').addEventListener('click',()=>{if(!confirm('取り込んだZaim明細をすべて削除しますか？請求・固定費・設定は残ります。'))return;state.transactions=[];save();renderAll();notice('取込明細を削除しました')});
+
+let lastDeletedTx=null;
+function removeImportedTransactions(predicate,description){
+ const before=state.transactions.slice();
+ const removed=before.filter(predicate);
+ if(!removed.length){notice('対象の明細がありません');return false}
+ if(!confirm(description+'：'+removed.length+'件のZaim取込明細を削除します。\n\nカード請求・口座残高・サブスク・AI計画は削除しません。\n\nよろしいですか？'))return false;
+ lastDeletedTx=before;
+ state.transactions=before.filter(t=>!predicate(t));
+ save();renderAll();notice(removed.length+'件のZaim明細を削除しました');
+ return true;
+}
+function renderImportBatches(){
+ const groups=new Map();
+ state.transactions.forEach(t=>{
+  const key=t.importBatchId||'__legacy__';
+  if(!groups.has(key))groups.set(key,{id:key,name:key==='__legacy__'?'以前の取込（ファイル不明）':(t.importFile||'名称なしCSV'),count:0,importedAt:t.importedAt||''});
+  groups.get(key).count++;
+ });
+ const rows=[...groups.values()].sort((a,b)=>b.importedAt.localeCompare(a.importedAt));
+ $('#txBatchList').innerHTML=rows.length?rows.map((group,index)=>
+  '<div class="list-row"><div class="ai-split"><div class="list-main"><strong>'+esc(group.name)+'</strong><small>'+group.count+'件'+(group.importedAt?' · '+esc(group.importedAt.slice(0,10)):'')+'</small></div><button class="btn danger" type="button" data-del-batch="'+index+'">この取込を削除</button></div></div>'
+ ).join(''):'<p class="empty">現在、取り込んだCSV明細はありません。</p>';
+ $$('[data-del-batch]').forEach(b=>b.addEventListener('click',()=>{
+  const group=rows[Number(b.dataset.delBatch)];if(!group)return;
+  removeImportedTransactions(t=>(t.importBatchId||'__legacy__')===group.id,'「'+group.name+'」');
+ }));
+}
+function renderTransactions(){const ts=state.transactions;const months=[...new Set(ts.map(t=>t.date.slice(0,7)))].sort().reverse();const select=$('#txMonth'),was=select.value;const opts=months.map(m=>`<option value="${esc(m)}">${esc(monthLabel(m))}</option>`).join('');select.innerHTML=opts||'<option value="">データなし</option>';if(months.includes(was))select.value=was;const month=select.value;const filtered=ts.filter(t=>t.date.startsWith(month));const expense=filtered.filter(t=>t.type==='expense'&&t.countable!==false).reduce((a,t)=>a+t.amount,0),income=filtered.filter(t=>t.type==='income'&&t.countable!==false).reduce((a,t)=>a+t.amount,0);const excluded=filtered.filter(t=>t.type!=='transfer'&&t.countable===false).reduce((a,t)=>a+t.amount,0),transferred=filtered.filter(t=>t.type==='transfer').reduce((a,t)=>a+t.amount,0),movement=filtered.filter(t=>t.type==='expense'&&t.countable!==false&&(t.moveKind||cashMovement(t))).reduce((a,t)=>a+t.amount,0),realExpense=expense-movement;$('#txCount').textContent=ts.length+'件取込済み（集計除外あり）';$('#txSummary').innerHTML=`<div><small>生活支出（引出・チャージを除く目安）</small><strong>${yen(realExpense)}</strong></div><div><small>Zaim設定上の支出</small><strong>${yen(expense)}</strong></div><div><small>現金引出・チャージ等</small><strong>${yen(movement)}</strong></div><div><small>今月の収入（Zaim記録）</small><strong>${yen(income)}</strong></div><div><small>集計から除外</small><strong>${yen(excluded)}</strong></div><div><small>口座間振替（別管理）</small><strong>${yen(transferred)}</strong></div>`;const cats={};for(const t of filtered.filter(t=>t.type==='expense'&&t.countable!==false&&!(t.moveKind||cashMovement(t))))cats[t.category]=(cats[t.category]||0)+t.amount;const values=Object.entries(cats).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...values.map(v=>v[1]));$('#categoryBars').innerHTML=values.length?values.slice(0,12).map(([name,val])=>`<div class="barrow"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(name)}">${esc(name)}</span><div class="track"><span style="width:${val/mx*100}%"></span></div><span class="amount">${yen(val)}</span></div>`).join(''):'<p class="empty">CSVを取り込むとカテゴリ別支出が表示されます。</p>';$('#txList').innerHTML=filtered.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30).map(t=>`<div class="txrow"><div><strong>${esc(t.name)}</strong><small>${esc(t.date)} · ${esc(t.category)} · ${esc(t.account)}</small></div><span class="amt ${(t.type==='income'&&t.amount>=0)||(t.type==='expense'&&t.amount<0)?'positive':''}">${t.type==='transfer'?'⇄':((t.type==='income'&&t.amount>=0)||(t.type==='expense'&&t.amount<0)?'+':'−')}${yen(Math.abs(t.amount))}</span><button type="button" class="btn danger" style="padding:5px 8px;flex-shrink:0" data-del-tx="${ts.indexOf(t)}">削除</button></div>`).join('')||'<p class="empty">明細はありません</p>';
+renderImportBatches();
+$('[data-del-tx]').forEach(b=>b.addEventListener('click',()=>{
+ const original=ts[Number(b.dataset.delTx)];if(!original)return;
+ removeImportedTransactions(t=>t===original,'「'+original.date+' '+original.name+'」');
+}));
+$('#deleteTxMonth').disabled=!month||!filtered.length;
+$('#undoTxDelete').disabled=!lastDeletedTx;
+$('#txMonth').addEventListener('change',()=>renderTransactions());
+$('#deleteTxMonth').addEventListener('click',()=>{
+ const month=$('#txMonth').value;if(!month)return;
+ removeImportedTransactions(t=>t.date.startsWith(month),monthLabel(month));
+});
+$('#clearTx').addEventListener('click',()=>removeImportedTransactions(()=>true,'全Zaim明細'));
+$('#undoTxDelete').addEventListener('click',()=>{
+ if(!lastDeletedTx)return;
+ const previous=lastDeletedTx;lastDeletedTx=null;state.transactions=previous;save();renderAll();notice('直前の削除を元に戻しました');
+});
 function download(name,type,text){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('#exportBackup').addEventListener('click',()=>{const date=new Date().toISOString().slice(0,10);download('money-plan-lab-'+date+'.json','application/json;charset=utf-8',JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2));notice('バックアップを書き出しました')});
 $('#importBackup').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!data?.settings||!Array.isArray(data?.cards)||!Array.isArray(data?.fixed)||!Array.isArray(data?.transactions)||!Array.isArray(data?.accounts))throw new Error('Money Plan Labのバックアップ形式ではありません');if(!confirm('現在の保存内容をバックアップのデータで上書きしますか？'))return;state={v:3,settings:data.settings,cards:data.cards,fixed:data.fixed,transactions:data.transactions,accounts:data.accounts,goals:Array.isArray(data.goals)?data.goals:[],monthlyPlans:Array.isArray(data.monthlyPlans)?data.monthlyPlans:[]};save();renderAll();notice('バックアップを復元しました')}catch(err){notice('復元に失敗しました：'+err.message)}finally{e.target.value=''}});
