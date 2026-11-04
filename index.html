@@ -63,7 +63,7 @@
 <div class="section"><div class="section-h"><h2>毎月の固定費</h2><button class="btn ghost" data-go="recurring">編集する ›</button></div><div class="kpi-line" id="fixedSummary"></div><div class="tagline">固定費はカード請求と重複加算しません。更新日の確認用として管理します。</div></div>
 </div><div>
 <div class="section"><div class="section-h"><h2>資金繰りシミュレーション</h2><button class="btn ghost" data-go="settings">条件を変更 ›</button></div><p class="section-lead">登録した給与・実際のカード引落日・奨学金・借入返済・カード以外の予定支出を月単位で反映</p><div class="scroll-x"><table class="projection"><thead><tr><th>月</th><th>カード</th><th>月中の最低残高</th><th>月末残高試算</th></tr></thead><tbody id="forecastRows"></tbody></table></div><div id="forecastAlert"></div><h3 style="margin-top:17px">直近の入出金予定</h3><div id="upcomingEvents"></div><div class="tagline">※実際の引落月で集計します（同じ月に複数の引落がある場合は合算）。未来の未登録カード利用、税金、利息などは未反映。生活費の支出日は月末と仮定しています。各月の最低残高・月末残高は実残高ではなく試算です。</div></div>
-<div class="section"><div class="section-h"><h2>目標の進み具合</h2></div><div id="goalBox"></div></div><div class="section"><div class="section-h"><h2>ChatGPTからの計画</h2><button class="btn ghost" data-go="ai">計画を編集 ›</button></div><div id="aiPlanSummary"></div></div>
+<div class="section"><div class="section-h"><h2>目標の進み具合</h2></div><div id="goalBox"></div></div><div class="section"><div class="section-h"><h2>ChatGPTからの計画</h2><button class="btn ghost" data-go="ai">計画を編集 ›</button></div><div id="aiPlanSummary"></div></div><div class="section"><div class="section-h"><h2>目標達成の分析</h2><button class="btn ghost" data-go="analysis">分析を見る ›</button></div><p class="note">Zaimの収支傾向、カテゴリ予算、カード引落リスク、目標までの必要ペースを確認できます。</p></div>
 </div></div>
 </section>
 <section id="analysis" class="view">
@@ -130,7 +130,7 @@
 <script>
 'use strict';
 const KEY='money_plan_lab_v1';
-const initial={v:2,updated:'',settings:{cash:0,salary:0,salaryDay:25,scholarship:0,scholarshipDay:27,debt:0,debtPay:0,debtDay:27,cashLiving:0,livingBudget:0,saving:0,savingsBalance:0,startMonth:'2026-11'},cards:[],fixed:[],transactions:[],accounts:[],goals:[],monthlyPlans:[]};
+const initial={v:2,updated:'',settings:{cash:0,salary:0,salaryDay:25,scholarship:0,scholarshipDay:27,debt:0,debtPay:0,debtDay:27,cashLiving:0,livingBudget:0,saving:0,savingsBalance:0,startMonth:'2026-11'},cards:[],fixed:[],transactions:[],accounts:[],goals:[],monthlyPlans:[],analysis:{categoryBudgets:{}}};
 const clone=o=>JSON.parse(JSON.stringify(o));
 let state;try{let parsed=JSON.parse(localStorage.getItem(KEY)||'null');state=parsed&&Array.isArray(parsed.cards)&&parsed.settings&&Array.isArray(parsed.fixed)?parsed:clone(initial)}catch(e){state=clone(initial)}
 state.goals=Array.isArray(state.goals)?state.goals:[];state.monthlyPlans=Array.isArray(state.monthlyPlans)?state.monthlyPlans:[];
@@ -374,7 +374,7 @@ $('#undoTxDelete').addEventListener('click',()=>{
 });
 function download(name,type,text){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('#exportBackup').addEventListener('click',()=>{const date=new Date().toISOString().slice(0,10);download('money-plan-lab-'+date+'.json','application/json;charset=utf-8',JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2));notice('バックアップを書き出しました')});
-$('#importBackup').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!data?.settings||!Array.isArray(data?.cards)||!Array.isArray(data?.fixed)||!Array.isArray(data?.transactions)||!Array.isArray(data?.accounts))throw new Error('Money Plan Labのバックアップ形式ではありません');if(!confirm('現在の保存内容をバックアップのデータで上書きしますか？'))return;state={v:3,settings:data.settings,cards:data.cards,fixed:data.fixed,transactions:data.transactions,accounts:data.accounts,goals:Array.isArray(data.goals)?data.goals:[],monthlyPlans:Array.isArray(data.monthlyPlans)?data.monthlyPlans:[]};lastDeletedTx=null;save();renderAll();notice('バックアップを復元しました')}catch(err){notice('復元に失敗しました：'+err.message)}finally{e.target.value=''}});
+$('#importBackup').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!data?.settings||!Array.isArray(data?.cards)||!Array.isArray(data?.fixed)||!Array.isArray(data?.transactions)||!Array.isArray(data?.accounts))throw new Error('Money Plan Labのバックアップ形式ではありません');if(!confirm('現在の保存内容をバックアップのデータで上書きしますか？'))return;state={v:3,settings:data.settings,cards:data.cards,fixed:data.fixed,transactions:data.transactions,accounts:data.accounts,goals:Array.isArray(data.goals)?data.goals:[],monthlyPlans:Array.isArray(data.monthlyPlans)?data.monthlyPlans:[],analysis:data.analysis&&typeof data.analysis==='object'&&!Array.isArray(data.analysis)?data.analysis:{categoryBudgets:{}}};lastDeletedTx=null;save();renderAll();notice('バックアップを復元しました')}catch(err){notice('復元に失敗しました：'+err.message)}finally{e.target.value=''}});
 function renderAll(){renderDashboard();renderCards();renderRecurring();renderSettings();renderTransactions()};renderAll();
 if('serviceWorker' in navigator && location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script><script src="./ai-import.js"></script><script src="./analysis.js"></script></body></html>
